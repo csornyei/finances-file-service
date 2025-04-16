@@ -1,4 +1,4 @@
-from fastapi import APIRouter, UploadFile, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, UploadFile
 
 from finances_file_service.controllers.upload import UploadController
 from finances_file_service.logger import logger
@@ -31,7 +31,7 @@ async def upload_zip(
     file_content = await zip_file.read()
 
     try:
-        controller.upload_zip_file("/csv", file_name, file_content)
+        controller.upload_zip_file(file_name, file_content)
 
         return {"message": "Upload zip data endpoint"}
     except Exception as e:

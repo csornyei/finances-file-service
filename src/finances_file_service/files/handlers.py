@@ -1,9 +1,9 @@
 import os
 from pathlib import Path
 
+from finances_file_service.files.file_handler import FileHandler
 from finances_file_service.files.local_handler import LocalHandler
 from finances_file_service.files.s3_handler import S3Handler
-from finances_file_service.files.file_handler import FileHandler
 
 
 def get_file_handler() -> FileHandler:

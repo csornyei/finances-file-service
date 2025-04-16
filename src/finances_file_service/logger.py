@@ -1,12 +1,12 @@
 import logging
 from typing import Any
 
-from pythonjsonlogger import jsonlogger
+from pythonjsonlogger.json import JsonFormatter
 
 _log_format = "%(asctime)s - [%(levelname)s] - %(name)s - %(funcName)s - %(message)s"
 
 
-class CustomJsonFormatter(jsonlogger.JsonFormatter):
+class CustomJsonFormatter(JsonFormatter):
     """Custom JSON formatter for logging
 
     It automatically adds the location of the log record to the JSON log message.

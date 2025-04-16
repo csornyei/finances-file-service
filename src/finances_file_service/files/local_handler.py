@@ -1,6 +1,6 @@
+import os
 from pathlib import Path
 from typing import List
-import os
 
 from finances_file_service.files.file_handler import FileHandler
 

@@ -19,7 +19,7 @@ class UploadController:
         """
         self.file_handler.save_file(f"csv/{file_path}", content)
 
-    def upload_zip_file(self, prefix: str, file_path: str, content: bytes) -> None:
+    def upload_zip_file(self, file_path: str, content: bytes) -> None:
         """
         Upload a file to the specified path.
 
@@ -49,7 +49,7 @@ class UploadController:
                     with open(os.path.join(temp_dir, file_name), "rb") as file:
                         content = file.read()
 
-                        self.upload_csv_file(f"{prefix}/{file_name}", content)
+                        self.upload_csv_file(file_name, content)
 
     def _unzip_file(self, zip_file_path: str, extract_to: str) -> None:
         """
