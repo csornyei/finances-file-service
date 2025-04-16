@@ -6,7 +6,6 @@ import finances_file_service.params as params
 from finances_file_service.logger import logger
 from finances_file_service.routes import router
 
-
 app = FastAPI()
 
 

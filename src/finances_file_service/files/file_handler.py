@@ -22,3 +22,13 @@ class FileHandler(ABC):
         :param content: The content of the file as bytes.
         """
         pass
+
+    @abstractmethod
+    def get_file_path(self, file_name: str) -> str:
+        """
+        Get the full path of a file.
+
+        :param file_name: The name of the file.
+        :return: The full path of the file.
+        """
+        pass

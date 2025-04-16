@@ -52,3 +52,16 @@ class LocalHandler(FileHandler):
 
         with open(full_path, "wb") as file:
             file.write(content)
+
+    def get_file_path(self, file_name: str) -> str:
+        """
+        Get the full path of a file.
+
+        :param file_name: The name of the file.
+        :return: The full path of the file.
+        """
+        full_path = Path(self.base_path) / file_name
+        if not full_path.exists():
+            raise FileNotFoundError(f"File {full_path} does not exist.")
+
+        return str(self.base_path / file_name)

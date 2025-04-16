@@ -1,5 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, UploadFile
+from pydantic import BaseModel
 
+import finances_file_service.controllers.process as process_controller
 from finances_file_service.controllers.upload import UploadController
 from finances_file_service.files import FileHandler, get_file_handler
 from finances_file_service.logger import logger
@@ -65,12 +67,46 @@ async def upload_csv(
     return {"message": "Upload CSV data endpoint"}
 
 
+class ProcessDataRequest(BaseModel):
+    """
+    Request model for processing data.
+    """
+
+    file_name: str
+    delimiter: str = ";"
+
+
 @router.post("/process")
-async def process_data():
+async def process_data(
+    body: ProcessDataRequest, handler: FileHandler = Depends(get_file_handler)
+):
     """
     Endpoint to process data.
     """
-    return {"message": "Process data endpoint"}
+
+    if not body.file_name:
+        logger.error("File name is required")
+        raise HTTPException(status_code=400, detail="File name is required")
+    if not body.delimiter:
+        logger.error("Delimiter is required")
+        raise HTTPException(status_code=400, detail="Delimiter is required")
+
+    try:
+        full_file_path = handler.get_file_path(f"csv/{body.file_name}")
+
+    except FileNotFoundError:
+        logger.error(f"File {body.file_name} not found")
+        raise HTTPException(status_code=404, detail="File not found")
+
+    if not full_file_path:
+        logger.error(f"File {body.file_name} not found")
+        raise HTTPException(status_code=404, detail="File not found")
+
+    processed_df = process_controller.process_file(
+        full_file_path, delimiter=body.delimiter
+    )
+
+    return processed_df.to_dict(orient="records")
 
 
 @router.get("/files/raw")
