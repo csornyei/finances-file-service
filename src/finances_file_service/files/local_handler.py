@@ -46,7 +46,6 @@ class LocalHandler(FileHandler):
         full_path = Path(self.base_path) / file_path
 
         if not full_path.parent.exists():
-            print(f"Directory {full_path.parent} does not exist. Creating it.")
             os.mkdir(full_path.parent)
         if not full_path.parent.is_dir():
             raise ValueError(f"Path {full_path.parent} is not a directory.")

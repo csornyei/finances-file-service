@@ -11,10 +11,10 @@ def set_env_variables():
     This fixture is automatically applied to all tests.
     """
 
-    print("Setting environment variables for testing...")
     os.environ["FILE_HANDLER_TYPE"] = "local"
     os.environ["LOCAL_FILE_PATH"] = "/tmp/uploads"
-    os.environ["PROCESSED_DIRECTORY"] = "/tmp/processed"
+    os.makedirs(os.environ["LOCAL_FILE_PATH"], exist_ok=True)
+    os.makedirs(os.path.join(os.environ["LOCAL_FILE_PATH"], "csv"), exist_ok=True)
     os.environ["LOG_LEVEL"] = "DEBUG"
 
 
@@ -32,6 +32,5 @@ def clean_upload_directory():
     yield
 
     # Cleanup logic after all tests
-    print("Cleaning up upload directory...")
     if os.path.exists(upload_directory):
         shutil.rmtree(upload_directory)

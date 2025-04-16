@@ -6,6 +6,16 @@ client = TestClient(app)
 
 
 def test_get_csv_files():
+    with open("/tmp/uploads/csv/test.csv", "w") as file:
+        file.write("column1,column2,column3\nvalue1,value2,value3\n")
+
     response = client.get("/api/v1/files/raw")
     assert response.status_code == 200
-    assert response.json() == {"message": "Get CSV files endpoint"}
+    assert response.json() == {
+        "files": [
+            {
+                "file_name": "test.csv",
+                "file_type": "csv",
+            }
+        ]
+    }

@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, UploadFile
 
 from finances_file_service.controllers.upload import UploadController
+from finances_file_service.files import FileHandler, get_file_handler
 from finances_file_service.logger import logger
 
 router = APIRouter()
@@ -47,8 +48,6 @@ async def upload_csv(
     Endpoint to upload CSV data.
     """
 
-    print(csv_file)
-
     if not csv_file or csv_file.content_type != "text/csv":
         raise HTTPException(
             status_code=400, detail="Invalid file type. Only CSV files are allowed."
@@ -75,16 +74,19 @@ async def process_data():
 
 
 @router.get("/files/raw")
-async def get_csv_files():
+async def get_csv_files(
+    handler: FileHandler = Depends(get_file_handler),
+):
     """
     Endpoint to get CSV files.
     """
-    return {"message": "Get CSV files endpoint"}
 
+    if not handler:
+        logger.error("File handler not found")
+        raise HTTPException(status_code=404, detail="File handler not found")
 
-@router.get("/files/processed")
-async def get_processed_files():
-    """
-    Endpoint to get processed files.
-    """
-    return {"message": "Get processed files endpoint"}
+    csv_files = [
+        {"file_name": file, "file_type": "csv"} for file in handler.list_files("csv")
+    ]
+
+    return {"files": [*csv_files]}
