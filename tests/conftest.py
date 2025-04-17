@@ -11,10 +11,9 @@ def set_env_variables():
     This fixture is automatically applied to all tests.
     """
 
+    print("Setting up environment variables for tests...")
     os.environ["FILE_HANDLER_TYPE"] = "local"
     os.environ["LOCAL_FILE_PATH"] = "/tmp/uploads"
-    os.makedirs(os.environ["LOCAL_FILE_PATH"], exist_ok=True)
-    os.makedirs(os.path.join(os.environ["LOCAL_FILE_PATH"], "csv"), exist_ok=True)
     os.environ["LOG_LEVEL"] = "DEBUG"
 
 
@@ -24,6 +23,9 @@ def clean_upload_directory():
     Clean the /tmp/uploads directory after all tests have run.
     """
     upload_directory = os.getenv("LOCAL_FILE_PATH", "/tmp/uploads")
+
+    os.makedirs(upload_directory, exist_ok=True)
+    os.makedirs(os.path.join(upload_directory, "csv"), exist_ok=True)
 
     # Ensure the directory exists before tests
     os.makedirs(upload_directory, exist_ok=True)
