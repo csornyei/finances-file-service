@@ -33,7 +33,7 @@ jobs:
 
       # Step 5: Run linters (ruff, isort, black)
       - name: Run ruff
-        run: poetry run ruff .
+        run: poetry run ruff check .
 
       - name: Run isort
         run: poetry run isort --check-only .
