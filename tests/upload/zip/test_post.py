@@ -64,7 +64,7 @@ def test_upload_zip():
         assert response.json() == {"message": "Upload zip data endpoint"}
 
         # Check if the file was saved correctly
-        with open("/tmp/csv/test.csv", "rb") as file:
+        with open("/tmp/uploads/csv/test.csv", "rb") as file:
             content = file.read()
             assert content == csv_content.encode("utf-8")
 
@@ -88,10 +88,10 @@ def test_upload_zip_multiple_file():
         assert response.json() == {"message": "Upload zip data endpoint"}
 
         # Check if the files were saved correctly
-        with open("/tmp/csv/test1.csv", "rb") as file:
+        with open("/tmp/uploads/csv/test1.csv", "rb") as file:
             content = file.read()
             assert content == csv_content_1.encode("utf-8")
 
-        with open("/tmp/csv/test2.csv", "rb") as file:
+        with open("/tmp/uploads/csv/test2.csv", "rb") as file:
             content = file.read()
             assert content == csv_content_2.encode("utf-8")

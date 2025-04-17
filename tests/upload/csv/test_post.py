@@ -18,6 +18,6 @@ def test_upload_csv():
     assert response.json() == {"message": "Upload CSV data endpoint"}
 
     # Uploaded file should be saved in the expected location
-    with open("/tmp/csv/test.csv", "rb") as file:
+    with open("/tmp/uploads/csv/test.csv", "rb") as file:
         content = file.read()
         assert content == csv_content.encode("utf-8")
