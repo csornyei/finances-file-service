@@ -1,9 +1,11 @@
-import pika
-import json
 import datetime
+import json
 from json import JSONEncoder
 
+import aio_pika
+
 from finances_file_service.logger import logger
+from finances_file_service.params import get_rabbitmq_connection
 
 
 class DatetimeEncoder(JSONEncoder):
@@ -13,18 +15,41 @@ class DatetimeEncoder(JSONEncoder):
         return super().default(obj)
 
 
-class RabbitMQProducer:
-    def __init__(self):
-        self.connection = pika.BlockingConnection(
-            pika.ConnectionParameters(
-                host="localhost",
-                credentials=pika.PlainCredentials("rabbitmq", "rabbitmq"),
-            )
-        )
-        self.channel = self.connection.channel()
-        self.channel.queue_declare(queue="statement", durable=True)
+ROUTING_KEY = "statement"
 
-    def send_message(self, message: dict):
+
+class RabbitMQProducer:
+    def __init__(
+        self, connection: aio_pika.Connection = None, channel: aio_pika.Channel = None
+    ):
+        if connection is None or channel is None:
+            logger.error("RabbitMQ connection or channel is not provided!")
+            raise ValueError(
+                "RabbitMQ connection or channel is not provided! Use connect() method to establish a connection."
+            )
+        self.connection = connection
+        self.channel = channel
+
+    @staticmethod
+    async def connect() -> "RabbitMQProducer":
+        conn_url = get_rabbitmq_connection()
+
+        connection = await aio_pika.connect_robust(conn_url)
+
+        channel = await connection.channel()  # type: ignore
+
+        logger.info("RabbitMQ connection established and channel created.")
+        return RabbitMQProducer(connection, channel)
+
+    async def send_message(self, message: dict):
+        if self.connection is None or self.channel is None or self.channel.is_closed:
+            logger.error(
+                "RabbitMQ connection or channel is not established! Use connect() method to establish a connection."
+            )
+            raise ValueError(
+                "RabbitMQ connection or channel is not established! Use connect() method to establish a connection."
+            )
+
         message_json = json.dumps(message, cls=DatetimeEncoder)
         logger.info(
             json.dumps(
@@ -36,27 +61,26 @@ class RabbitMQProducer:
             )
         )
 
-        self.channel.basic_publish(
-            exchange="",
-            routing_key="statement",
-            body=json.dumps(message_json),
-            properties=pika.BasicProperties(
-                delivery_mode=2  # Make message persistent
+        await self.channel.default_exchange.publish(
+            aio_pika.Message(
+                body=message_json.encode("utf-8"),
+                content_type="application/json",
             ),
+            routing_key=ROUTING_KEY,
         )
 
-    def close(self):
-        self.connection.close()
+    async def close(self):
+        if self.connection:
+            await self.connection.close()
+            logger.info("RabbitMQ connection closed.")
+        else:
+            logger.error("RabbitMQ connection is not established!")
 
 
-instance: RabbitMQProducer = None
-
-
-def get_rabbitmq_producer() -> RabbitMQProducer:
-    """
-    Get the RabbitMQ producer instance.
-    """
-    global instance
-    if instance is None:
-        instance = RabbitMQProducer()
-    return instance
+async def get_producer():
+    producer = await RabbitMQProducer.connect()
+    try:
+        yield producer
+    finally:
+        logger.info("Closing RabbitMQ producer...")
+        await producer.close()
