@@ -1,12 +1,24 @@
 import time
+from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, HTTPException, Request
 
 import finances_file_service.params as params
 from finances_file_service.logger import logger
 from finances_file_service.routes import router
+from finances_file_service.producer import get_rabbitmq_producer
 
 app = FastAPI()
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    try:
+        producer = get_rabbitmq_producer()
+        yield
+    finally:
+        if producer:
+            producer.close()
 
 
 @app.middleware("http")
@@ -32,6 +44,22 @@ async def log_response(request: Request, call_next):
     logger.info(data)
 
     return response
+
+
+@app.middleware("http")
+def handle_exceptions(request: Request, call_next):
+    """
+    Middleware to handle exceptions and log them.
+    """
+    try:
+        response = call_next(request)
+        return response
+    except HTTPException as http_exception:
+        logger.error(f"HTTP exception: {http_exception.detail}")
+        return {"error": http_exception.detail}, http_exception.status_code
+    except Exception as e:
+        logger.error(f"Unhandled exception: {e}")
+        return {"error": "Internal Server Error"}, 500
 
 
 app.include_router(router, prefix="/api/v1", tags=["api"])

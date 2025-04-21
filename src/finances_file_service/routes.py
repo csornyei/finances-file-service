@@ -4,6 +4,7 @@ from pydantic import BaseModel
 import finances_file_service.controllers.process as process_controller
 from finances_file_service.controllers.upload import UploadController
 from finances_file_service.files import FileHandler, get_file_handler
+from finances_file_service.producer import RabbitMQProducer, get_rabbitmq_producer
 from finances_file_service.logger import logger
 
 router = APIRouter()
@@ -78,7 +79,9 @@ class ProcessDataRequest(BaseModel):
 
 @router.post("/process")
 async def process_data(
-    body: ProcessDataRequest, handler: FileHandler = Depends(get_file_handler)
+    body: ProcessDataRequest,
+    handler: FileHandler = Depends(get_file_handler),
+    producer: RabbitMQProducer = Depends(get_rabbitmq_producer),
 ):
     """
     Endpoint to process data.
@@ -106,6 +109,13 @@ async def process_data(
         full_file_path, delimiter=body.delimiter
     )
 
+    if not processed_df.empty:
+        # send each row as json to the RabbitMQ queue
+        for _, row in processed_df.iterrows():
+            message = row.to_dict()
+            print(message)
+            producer.send_message(message)
+
     return processed_df.to_dict(orient="records")
 
 
@@ -121,8 +131,18 @@ async def get_csv_files(
         logger.error("File handler not found")
         raise HTTPException(status_code=404, detail="File handler not found")
 
-    csv_files = [
-        {"file_name": file, "file_type": "csv"} for file in handler.list_files("csv")
-    ]
+    try:
+        files = handler.list_files("csv")
 
-    return {"files": [*csv_files]}
+        csv_files = [{"file_name": file, "file_type": "csv"} for file in files]
+
+        return {"files": [*csv_files]}
+    except FileNotFoundError:
+        logger.error("Directory not found")
+        raise HTTPException(status_code=404, detail="Directory not found")
+    except ValueError:
+        logger.error("Invalid directory")
+        raise HTTPException(status_code=400, detail="Invalid directory")
+    except Exception as e:
+        logger.error(f"Error listing files: {e}")
+        raise HTTPException(status_code=500, detail="Error listing files")
