@@ -1,7 +1,29 @@
 import os
 import shutil
+from unittest.mock import AsyncMock, MagicMock
+
+from finances_file_service.producer import RabbitMQProducer, get_producer
+from finances_file_service.main import app
 
 import pytest
+
+
+@pytest.fixture
+def mock_producer():
+    mock = MagicMock(spec=RabbitMQProducer)
+    mock.connect = AsyncMock(return_value=mock)
+    mock.send_message = AsyncMock()
+    return mock
+
+
+@pytest.fixture
+def override_dependency(mock_producer):
+    async def _override():
+        yield mock_producer
+
+    app.dependency_overrides[get_producer] = _override
+    yield
+    app.dependency_overrides.clear()
 
 
 @pytest.fixture(scope="session", autouse=True)

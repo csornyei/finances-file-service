@@ -1,3 +1,5 @@
+import pytest
+from httpx import AsyncClient
 from fastapi.testclient import TestClient
 
 from finances_file_service.main import app
@@ -5,7 +7,8 @@ from finances_file_service.main import app
 client = TestClient(app)
 
 
-def test_process_data():
+@pytest.mark.asyncio
+async def test_process_data(override_dependency):
     # write file to csv dir
     columns = [
         "Date",
@@ -41,7 +44,9 @@ def test_process_data():
         "delimiter": ";",
     }
 
-    response = client.post("/api/v1/process", json=body)
+    async with AsyncClient() as client:
+        response = await client.post("/process", json=body)
+
     assert response.status_code == 200
 
     assert response.json() == [
