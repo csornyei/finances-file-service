@@ -1,0 +1,33 @@
+services:
+  file_service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      secrets:
+        - github_user
+        - github_token
+    container_name: finances_file_service
+    restart: always
+    ports:
+      - "8083:8000"
+    networks:
+      - finances-network
+
+    environment:
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_PORT=5672
+      - RABBITMQ_USER=rabbitmq
+      - RABBITMQ_PASSWORD=rabbitmq
+    secrets:
+      - github_user
+      - github_token
+
+networks:
+  finances-network:
+    external: true
+
+secrets:
+  github_user:
+    file: ./secrets/github_user.txt
+  github_token:
+    file: ./secrets/github_token.txt

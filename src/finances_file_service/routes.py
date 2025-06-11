@@ -4,8 +4,8 @@ from pydantic import BaseModel
 import finances_file_service.controllers.process as process_controller
 from finances_file_service.controllers.upload import UploadController
 from finances_file_service.files import FileHandler, get_file_handler
+from finances_file_service.producer import producer
 from finances_file_service.logger import logger
-from finances_file_service.producer import RabbitMQProducer, get_producer
 
 router = APIRouter()
 
@@ -81,7 +81,6 @@ class ProcessDataRequest(BaseModel):
 async def process_data(
     body: ProcessDataRequest,
     handler: FileHandler = Depends(get_file_handler),
-    producer: RabbitMQProducer = Depends(get_producer),
 ):
     """
     Endpoint to process data.
@@ -113,8 +112,8 @@ async def process_data(
         # send each row as json to the RabbitMQ queue
         for _, row in processed_df.iterrows():
             message = row.to_dict()
-            print(message)
-            await producer.send_message(message)
+
+            await producer.send_message(message, logger)
 
     return processed_df.to_dict(orient="records")
 

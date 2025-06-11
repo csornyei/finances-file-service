@@ -1,12 +1,28 @@
 import time
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException, Request
 
 import finances_file_service.params as params
 from finances_file_service.logger import logger
 from finances_file_service.routes import router
+from finances_file_service.producer import producer
 
-app = FastAPI()
+from finances_shared.params import RabbitMQParams
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    try:
+        params = RabbitMQParams.from_env(logger)
+        await producer.connect(params, logger)
+        yield
+    finally:
+        if producer:
+            producer.close()
+
+
+app = FastAPI(lifespan=lifespan)
 
 
 @app.middleware("http")

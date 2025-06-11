@@ -1,7 +1,8 @@
 import os
 from pathlib import Path
 
-from finances_file_service.logger import add_log_context, logger
+from finances_file_service.logger import logger
+from finances_shared import add_log_context
 
 
 def get_file_handler() -> str:
