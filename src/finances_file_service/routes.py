@@ -4,8 +4,8 @@ from pydantic import BaseModel
 import finances_file_service.controllers.process as process_controller
 from finances_file_service.controllers.upload import UploadController
 from finances_file_service.files import FileHandler, get_file_handler
-from finances_file_service.producer import producer
 from finances_file_service.logger import logger
+from finances_file_service.producer import producer
 
 router = APIRouter()
 

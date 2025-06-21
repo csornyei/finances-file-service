@@ -2,13 +2,12 @@ import time
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException, Request
+from finances_shared.params import RabbitMQParams
 
 import finances_file_service.params as params
 from finances_file_service.logger import logger
-from finances_file_service.routes import router
 from finances_file_service.producer import producer
-
-from finances_shared.params import RabbitMQParams
+from finances_file_service.routes import router
 
 
 @asynccontextmanager
