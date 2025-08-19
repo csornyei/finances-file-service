@@ -11,7 +11,7 @@ services:
     ports:
       - "8083:8000"
     networks:
-      - finances-network
+      - finances_shared_default
 
     environment:
       - RABBITMQ_HOST=rabbitmq
@@ -23,7 +23,7 @@ services:
       - github_token
 
 networks:
-  finances-network:
+  finances_shared_default:
     external: true
 
 secrets:
