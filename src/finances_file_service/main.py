@@ -18,7 +18,7 @@ async def lifespan(app: FastAPI):
         yield
     finally:
         if producer:
-            producer.close()
+            await producer.close()
 
 
 app = FastAPI(lifespan=lifespan)
